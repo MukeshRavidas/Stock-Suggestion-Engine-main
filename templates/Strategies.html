@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wealth Wise Strategies</title>
+    <link rel="icon" href="../static/logo/title.png" type="image/x-icon">
+    <link rel="stylesheet" href="../static/css/styles.css">
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <div class="logo">
+            <img src="../static/logo/logo.png" alt="Logo">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/#hero">Home</a></li>
+                <li><a href="/#risk-levels">Blogs</a></li>
+                <li><a href="/#investment-section">Stock Suggestor</a></li>
+                <li><a href="/#customer-reviews">About</a></li>
+                <li><a href="/#team-section">Team</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<section class="hero-2">
+    <div class="container">
+        <h1>Unlocking the potential of strategic investing</h1>
+        <p>Explore our in-depth analysis to make informed investment decisions.</p>
+    </div>
+</section>
+
+<h1 style="color: #0f054b; text-align: center; margin-top: 20px; text-decoration: underline;">Current Prices</h1>
+<section class="stock-data">
+    <div class="container">
+        {% for strategy in stocks_info %}
+        <div style="height: 100px; display: flex; justify-content: center; align-items: center;">
+            <h2 style="line-height: 100px;" >{{ strategy.strategy_name }}</h2></div>
+        <div class="row">
+            {% for stock in strategy.stocks %}
+                <div class="stock-panel">
+                    <h2>{{ stock.symbol }}</h2>
+                    <h4>{{ stock.longName }}</h4>
+                    <div class="stock-info">
+                        <h3>{{ stock.currentPrice }}</h3>
+                        <p class="change">{{ stock.difference }} ({{ stock.differencePercentage }})</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<h1 style="color: #CEB257; text-align: center; text-decoration: underline;">Analysis</h1>
+<section class="pie-charts">
+    <div class="pie-chart">
+        <h3>Investment Distribution</h3>
+        <canvas id="chart1"></canvas>
+    </div>
+    <div class="pie-chart">
+        <h3>Amount of Stock</h3>
+        <canvas id="chart2"></canvas>
+    </div>
+</section>
+
+<br><br>
+
+<section class="line-charts">
+    <div class="chart-container">
+        <div class="chart">
+            <h3>Weekly Portfolio Value</h3>
+            <canvas id="column-chart"></canvas>
+        </div>
+        <div class="chart">
+            <h3>Stocks Trends</h3>
+            <canvas id="line-chart"></canvas>
+        </div>
+    </div>
+</section>
+
+<br><br>
+
+<h1 style="color: #0f054b; text-align: center; margin-top: 20px; text-decoration: underline;">News Blogs</h1>
+<section class="news-panels" style=" background-color: #0f054b;">
+    <div class="news-widget">
+        <!-- News items will be dynamically added here -->
+    </div>
+</section>
+
+
+<div id="disclaimer-banner" class="disclaimer-banner">
+    <div class="disclaimer-content">
+        <p>Disclaimer: The content on this website is for informational purposes only and should not be considered as
+            financial advice. All investment decisions are at your own risk.</p>
+        <button id="close-banner">Close</button>
+    </div>
+</div>
+
+</body>
+
+<footer class="footer">
+    <div class="container">
+        <h2>Disclaimer: The content on this website is for informational purposes only and should not be considered as
+            financial advice. All investment decisions are at your own risk.</h2>
+        <p>&copy; 2024 CMPE 285. All rights reserved.</p>
+    </div>
+</footer>
+
+</html>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    var backgroundColors = ['#519DE9', '#7CC674', '#73C5C5', '#8481DD', '#F6D173', '#EF9234'];
+
+    // Get the close button and disclaimer banner elements
+    const closeButton = document.getElementById('close-banner');
+    const disclaimerBanner = document.getElementById('disclaimer-banner');
+
+    // Add event listener to close button
+    closeButton.addEventListener('click', () => {
+        // Hide the disclaimer banner
+        disclaimerBanner.style.display = 'none';
+    });
+
+    // Select all elements with class 'change'
+    const changeElements = document.querySelectorAll('.change');
+
+    // Loop through each element
+    changeElements.forEach(element => {
+        // Get the text content (percentage change) and convert it to a number
+        const changeValue = parseFloat(element.textContent);
+
+        // Check if the change value is positive or negative
+        if (changeValue > 0) {
+            // If positive, add 'change' class
+            element.classList.add('change');
+        } else if (changeValue < 0) {
+            // If negative, add 'negative' class
+            element.classList.add('negative');
+        }
+        // If the change value is 0, you can choose to do nothing or apply a neutral class
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Data for Pie Chart 1
+        var data1 = {
+            labels: [{% for strategy in stocks_info %}{% for stock in strategy.stocks %}"{{ stock.longName }}"{% if not loop.last %}, {% endif %}{% endfor %}{% if not loop.last %}, {% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for strategy in stocks_info %}{% for stock in strategy.stocks %}{{ stock.allocation }}{% if not loop.last %}, {% endif %}{% endfor %}{% if not loop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: backgroundColors
+            }]
+        };
+
+        // Data for Pie Chart 2
+        var data2 = {
+            labels: [{% for strategy in stocks_info %}{% for stock in strategy.stocks %}"{{ stock.longName }}"{% if not loop.last %}, {% endif %}{% endfor %}{% if not loop.last %}, {% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for strategy in stocks_info %}{% for stock in strategy.stocks %}{{ stock.units }}{% if not loop.last %}, {% endif %}{% endfor %}{% if not loop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: backgroundColors
+            }]
+        };
+
+        // Options for Pie Charts
+        var options = {
+            // Add any options you want here
+        };
+
+        // Get canvas elements
+        var ctx1 = document.getElementById('chart1').getContext('2d');
+        var ctx2 = document.getElementById('chart2').getContext('2d');
+
+        // Create Pie Charts
+        var pieChart1 = new Chart(ctx1, {
+            type: 'pie',
+            data: data1,
+            options: options
+        });
+
+        var pieChart2 = new Chart(ctx2, {
+            type: 'doughnut',
+            data: data2,
+            options: options
+        });
+    });
+
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    var datasets = [];
+    {% for symbol, prices in historical_data.items() %}
+        datasets.push({
+            label: '{{ symbol }}',
+            data: {{ prices.get('values') | safe }},
+            borderColor: backgroundColors
+        });
+    {% endfor %}
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Line Chart Data
+        var lineChartData = {
+            labels: {{ dates | tojson }},
+            datasets: datasets
+        };
+
+        datasets = [];
+        var i = 0;
+        {% for symbol, prices in historical_data.items() %}
+            datasets.push({
+                label: '{{ symbol }}',
+                data: {{ prices.get('total_values') | safe }},
+                backgroundColor: backgroundColors[i % backgroundColors.length],
+            });
+            i++;
+        {% endfor %}
+
+
+        // Stacked Column Chart Data
+        var columnChartData = {
+            labels: {{ dates | tojson }},
+            datasets: datasets
+        };
+
+        // Line Chart Options
+        var lineChartOptions = {
+            // Add any options you want for the line chart
+        };
+
+        // Stacked Column Chart Options
+        var columnChartOptions = {
+            // Add any options you want for the stacked column chart
+            scales: {
+                x: {
+                    stacked: true // Enable stacking on the x-axis
+                },
+                y: {
+                    stacked: true // Enable stacking on the y-axis
+                }
+            }
+        };
+
+        // Get canvas elements
+        var lineCtx = document.getElementById('line-chart').getContext('2d');
+        var columnCtx = document.getElementById('column-chart').getContext('2d');
+
+        // Create Line Chart
+        var lineChart = new Chart(lineCtx, {
+            type: 'line',
+            data: lineChartData,
+            options: lineChartOptions
+        });
+
+        // Create Stacked Column Chart
+        var columnChart = new Chart(columnCtx, {
+            type: 'bar',
+            data: columnChartData,
+            options: columnChartOptions
+        });
+    });
+
+    async function fetchStockNews(symbols) {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 7); // Set to yesterday
+
+        const formattedYesterday = formatDate(yesterday);
+
+        const baseUrl = "https://newsapi.org/v2/everything";
+        let query = "Stocks"; // Initial query
+
+        symbols.forEach(symbol => {
+            query += ` OR ${symbol}`;
+        });
+
+        const apiKey = "bfba112356d4433882100d632b80743b";
+        const url = `${baseUrl}?q=${query}&from=${formattedYesterday}&to=${formattedYesterday}&sortBy=popularity&apiKey=${apiKey}&pageSize=10`;
+
+        try {
+            const response = await fetch(url);
+            console.log('API Response:', response);
+            const data = await response.json();
+            console.log('Data:', data);
+            // Filter out articles containing '[Removed]' in title or description
+            const filteredArticles = data.articles.filter(article => {
+                return article.title !== '[Removed]' && article.url !== 'https://removed.com';
+            });
+            return filteredArticles.slice(0, 6);
+        } catch (error) {
+            console.error('Error fetching news:', error);
+            return [];
+        }
+    }
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function createNewsItem(article) {
+        const newsItem = document.createElement('div');
+        newsItem.classList.add('news-item');
+        const link = document.createElement('a');
+        link.href = article.url;
+        link.target = '_blank';
+        const image = document.createElement('img');
+        image.src = article.urlToImage;
+        image.alt = 'Article Image';
+        const title = document.createElement('h3');
+        title.textContent = article.title;
+        const description = document.createElement('p');
+        description.textContent = article.description;
+        link.appendChild(image);
+        link.appendChild(title);
+        link.appendChild(description);
+        newsItem.appendChild(link);
+        return newsItem;
+    }
+
+    async function displayNews() {
+        const symbols = [];
+        {% for strategy in stocks_info %}
+            {% for stock in strategy.stocks %}
+                symbols.push('{{ stock.symbol }}');
+            {% endfor %}
+        {% endfor %}
+
+        const newsWidget = document.querySelector('.news-widget');
+        const articles = await fetchStockNews(symbols);
+        console.log('Articles:', articles);
+        articles.forEach(article => {
+            const newsItem = createNewsItem(article);
+            newsWidget.appendChild(newsItem);
+        });
+    }
+
+    displayNews();
+
+</script>
